@@ -3,7 +3,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN rm /etc/apt/sources.list
 COPY sources.list /etc/apt/
 RUN apt-get update
-RUN apt-get -y install software-properties-common  gcc g++ git libtool  libseccomp-dev cmake
+RUN apt-get -y install software-properties-common python-software-properties python python-dev  gcc g++ git libtool  libseccomp-dev cmake
 RUN cd /tmp && git clone https://github.com/QingdaoU/Judger && cd Judger && git checkout newnew && mkdir build && cd build && cmake .. && make && make install 
 RUN apt-get -y install curl
 # 安装node 6.9.1
