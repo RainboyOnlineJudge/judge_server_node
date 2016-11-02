@@ -8,7 +8,8 @@ RUN cd /tmp && git clone https://github.com/QingdaoU/Judger && cd Judger && git 
 RUN apt-get -y install curl
 # 安装node 6.9.1
 RUN cd /tmp && curl -o node691.tar.xz https://nodejs.org/dist/v6.9.1/node-v6.9.1-linux-x64.tar.xz && tar -xf node691.tar.xz && cp -r ./node-v6.9.1-linux-x64/* /usr/ && rm -rf ./node-v6.9.1-linux-x64 node691.tar.xz
-RUN npm i judge_node -g
+RUN npm i judge_node pm2 mocha should -g
+RUN echo 'export NODE_PATH=/usr/lib/node_modules' >> /etc/profile
 # 建立 文件夹
 RUN mkdir -p /judger_run /test_case /log /code
 RUN useradd -r compiler
