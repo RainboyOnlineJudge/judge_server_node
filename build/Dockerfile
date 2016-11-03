@@ -15,7 +15,8 @@ RUN cd /tmp && curl -o fpc.tar http://nchc.dl.sourceforge.net/project/freepascal
 RUN npm i judge_node pm2 mocha should -g
 RUN echo 'export NODE_PATH=/usr/lib/node_modules' >> /etc/profile
 # 建立 文件夹
-RUN mkdir -p /judger_run /test_case /log /code
+RUN mkdir -p /repo /test  /log /code
 RUN useradd -r compiler
+RUN chown compiler:compiler /test
 WORKDIR /code
 EXPOSE 8080
