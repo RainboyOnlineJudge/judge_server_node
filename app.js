@@ -2,6 +2,7 @@ var express  = require('express');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
 var Promise  =require('bluebird')
+var schedule = require('node-schedule')
 var pathFn = require('path');
 var mkdirp = require('mkdirp');
 var queuefun  = require('queue-fun')
@@ -63,6 +64,15 @@ app.post('/tmpfile',function(req,res){
     req.on('end',function(){
         //解压zip
         if(type == '.zip'){
+
+            var date = new Date(Date.now+30*60*1000);
+            var j = schedule.scheduleJob( date,function(){
+
+                if( fs.existsSync(path)){
+                    myfs.rmdir(path);
+                    console.log('删除超时文件夹: '+ path);
+                }
+            })
             //return unzip(filePath,path)
                     //.then(function(){
                         //fs.unlink(filePath);
