@@ -4,11 +4,14 @@ RUN rm /etc/apt/sources.list
 COPY sources.list /etc/apt/
 RUN apt-get update
 # 安装必要的软件
-RUN apt-get -y install software-properties-common python-software-properties python python-dev  gcc g++ fpc git libtool  libseccomp-dev cmake
+RUN apt-get -y install software-properties-common python-software-properties python python-dev  gcc g++  git libtool  libseccomp-dev cmake
 RUN cd /tmp && git clone https://github.com/QingdaoU/Judger && cd Judger && git checkout newnew && mkdir build && cd build && cmake .. && make && make install 
 RUN apt-get -y install curl
 # 安装node 6.9.1
 RUN cd /tmp && curl -o node691.tar.xz https://nodejs.org/dist/v6.9.1/node-v6.9.1-linux-x64.tar.xz && tar -xf node691.tar.xz && cp -r ./node-v6.9.1-linux-x64/* /usr/ && rm -rf ./node-v6.9.1-linux-x64 node691.tar.xz
+RUN cd /tmp && curl -o fpc.tar http://nchc.dl.sourceforge.net/project/freepascal/Linux/3.0.0/fpc-3.0.0.x86_64-linux.tar && tar -xf fpc.tar
+COPY install.sh /tmp/fpc-3.0.0.x86_64-linux
+RUN cd /tmp/fpc-3.0.0.x86_64-linux && sudo ./install.sh && cd .. && sudo rm -rf fpc.tar fpc-3.0.0.x86_64-linux/
 RUN npm i judge_node pm2 mocha should -g
 RUN echo 'export NODE_PATH=/usr/lib/node_modules' >> /etc/profile
 # 建立 文件夹
