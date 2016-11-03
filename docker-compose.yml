@@ -1,0 +1,9 @@
+version: "2"
+services:
+    judge_server:
+        image: daocloud.io/rainboy/judger_server
+        volumes:
+            - $PWD:/code
+        ports:
+            - "0.0.0.0:8080:8080"
+        command: node index.js
