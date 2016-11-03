@@ -63,14 +63,18 @@ app.post('/tmpfile',function(req,res){
     req.on('end',function(){
         //解压zip
         if(type == '.zip'){
-            return unzip(filePath,path)
-                    .then(function(){
-                        fs.unlink(filePath);
-                        res.json({
-                            state:'success',
-                            uid:uid
-                        });
-                    })
+            //return unzip(filePath,path)
+                    //.then(function(){
+                        //fs.unlink(filePath);
+                        //res.json({
+                            //state:'success',
+                            //uid:uid
+                        //});
+                    //})
+            res.json({
+                state:'success',
+                uid:uid
+            })
         }
         else
             res.json({
@@ -106,15 +110,10 @@ app.post('/file',function(req,res){
     req.on('end',function(){
         //解压zip
         if(type == '.zip'){
-            return unzip(filePath,path)
-                    .then(function(){
-                        //删除zip
-                        fs.unlink(filePath);
-                        res.json({
-                            state:'success',
-                            uid:uid
-                        });
-                    })
+            res.json({
+                state:'success',
+                uid:uid
+            });
         }
         else
             res.json({
@@ -175,23 +174,26 @@ app.post('/judge',function(req,res){
     var code_path = '';
     var out_path  = '';
 
-    if(tmp_uid == uid) {//这种时候
-        data_path = join(config.tmp_prefix,uid);
-        code_path = join(config.tmp_prefix,uid,'main.'+language);
-        out_path  = join(config.tmp_prefix,uid,'out');
-    }
-    else{
-        data_path = join(config.prefix,uid);
-        code_path = join(config.tmp_prefix,tmp_uid,'main.'+language);
-        out_path  = join(config.tmp_prefix,tmp_uid,'out');
-    }
+    data_path = join(config.tmp_prefix,tmp_uid);
+    code_path = join(config.tmp_prefix,tmp_uid,'main.'+language);
+    out_path  = join(config.tmp_prefix,tmp_uid,'out');
 
     mkdirp.sync(out_path);
 
     function do_judger(c_path,s_src){
-        return myfs.writeFile(c_path,s_src)
+        return myfs.writeFile(c_path,s_src) //写入代码代码
+            .then(function(){   //如果tmp_uid !==  uid 那么 复制->解压 else 直接解压
+                if(tmp_uid !== uid){
+                    var s_path = join(config.prefix,uid,'data.zip');
+                    var d_path = join(config.tmp_prefix,tmp_uid,'data.zip');
+                    return myfs.copyFile(s_path,d_path);
+                }
+            })
+            .then(function(){//解压
+                var d_path = join(config.tmp_prefix,tmp_uid,'data.zip');
+                return unzip(d_path,data_path)
+            })
             .then(function(){
-                debugger;
                 return judge(data_path,out_path,code_path,language,judgerConfig,output)
             })
             .then(function(data){
