@@ -10,7 +10,7 @@ RUN apt-get -y install curl
 # 安装node 6.9.1
 RUN cd /tmp && curl -o node691.tar.xz https://nodejs.org/dist/v6.9.1/node-v6.9.1-linux-x64.tar.xz && tar -xf node691.tar.xz && cp -r ./node-v6.9.1-linux-x64/* /usr/ && rm -rf ./node-v6.9.1-linux-x64 node691.tar.xz
 # 安装fpc
-RUN cd /tmp && curl -o fpc.tar http://nchc.dl.sourceforge.net/project/freepascal/Linux/3.0.0/fpc-3.0.0.x86_64-linux.tar && tar -xf fpc.tar && cd fpc-3.0.0.x86_64-linux && rm install.sh && curl -o install.sh https://raw.githubusercontent.com/RainboyOnlineJudge/judge_server_node/master/build/install.sh && sudo chmod +x ./install.sh && sudo ./install.sh && cd .. && sudo rm -rf fpc.tar fpc-3.0.0.x86_64-linux/
+RUN cd /tmp && curl -o fpc.tar http://nchc.dl.sourceforge.net/project/freepascal/Linux/2.6.4/fpc-2.6.4.x86_64-linux.tar && tar -xf fpc.tar && cd fpc-2.6.4.x86_64-linux && rm install.sh && curl -o install.sh https://raw.githubusercontent.com/RainboyOnlineJudge/judge_server_node/master/build/install.sh && sudo chmod +x ./install.sh && sudo ./install.sh && cd .. && sudo rm -rf fpc.tar fpc-2.6.4.x86_64-linux/
 # 安装 node 包
 RUN npm i judge_node pm2 mocha should -g
 RUN echo 'export NODE_PATH=/usr/lib/node_modules' >> /etc/profile

@@ -8,11 +8,7 @@
 #
 
 # Release Version will be replaced by makepack
-VERSION=3.0.0
-FULLVERSION=3.0.0
-
-# some useful functions
-# ask displays 1st parameter, and ask new value for variable, whose name is
+VERSION=2.6.4 FULLVERSION=2.6.4 # some useful functions # ask displays 1st parameter, and ask new value for variable, whose name is
 # in the second parameter.
 ask ()
 {
@@ -26,14 +22,7 @@ ask ()
 # yesno gives 1 on no, 0 on yes $1 gives text to display.
 yesno ()
 {
-  while true; do
-  printf "$1 (Y/n) ? "
-  read ans
-  case X"$ans" in
-   X|Xy|XY) return 0;;
-   Xn|XN) return 1;;
-  esac
-  done
+  return 1;
 }
 #
 #
@@ -138,52 +127,43 @@ installbinary ()
   rm -f "$EXECDIR/ppc${PPCSUFFIX}"
   ln -sf "$LIBDIR/ppc${PPCSUFFIX}" "$EXECDIR/ppc${PPCSUFFIX}"
 
-  echo "Installing rtl packages..."
-  listtarfiles "$BINARYTAR" packages units-rtl
-  for f in $packages
-  do
-    p=`echo "$f" | sed -e 's+^.*units-\([^\.]*\)\..*+\1+'`
-	echo "Installing $p"
-    unztarfromtar "$BINARYTAR" "$f" "$PREFIX"
-  done
-
-  echo "Installing fcl..."
-  listtarfiles "$BINARYTAR" packages units-fcl
-  for f in $packages
-  do
-    p=`echo "$f" | sed -e 's+^.*units-\([^\.]*\)\..*+\1+'`
-	echo "Installing $p"
-    unztarfromtar "$BINARYTAR" "$f" "$PREFIX"
-  done
-
-  echo "Installing packages..."
-  listtarfiles "$BINARYTAR" packages units
-  for f in $packages
-  do
-    if ! echo "$f" | grep -q fcl > /dev/null ; then
-      if ! echo "$f" | grep -q rtl > /dev/null ; then
-        p=`echo "$f" | sed -e 's+^.*units-\([^\.]*\)\..*+\1+'`
-	echo "Installing $p"
-        unztarfromtar "$BINARYTAR" "$f" "$PREFIX"
-      fi
-    fi
-  done
-
   echo "Installing utilities..."
-  listtarfiles "$BINARYTAR" packages ${CROSSPREFIX}utils
-  for f in $packages
-  do
-    p=`echo "$f" | sed -e 's+^.*utils-\([^\.]*\)\..*+\1+' -e 's+^.*\(utils\)[^\.]*\..*+\1+'`
-	echo "Installing $p"
-    unztarfromtar "$BINARYTAR" "$f" "$PREFIX"
-  done
+  unztarfromtar "$BINARYTAR" "${CROSSPREFIX}utils.$1.tar.gz" "$PREFIX"
 
   # Should this be here at all without a big Linux test around it?
   if [ "x$UID" = "x0" ]; then
     chmod u=srx,g=rx,o=rx "$PREFIX/bin/grab_vcsa"
   fi
 
+  ide=`$TAR -tf $BINARYTAR | grep "${CROSSPREFIX}ide.$1.tar.gz"`
+  if [ "$ide" = "${CROSSPREFIX}ide.$1.tar.gz" ]; then
+    if yesno "Install Textmode IDE"; then
+      unztarfromtar "$BINARYTAR" "${CROSSPREFIX}ide.$1.tar.gz" "$PREFIX"
+    fi
+  fi
 
+  if yesno "Install FCL"; then
+    listtarfiles "$BINARYTAR" packages units
+    for f in $packages
+    do
+      if echo "$f" | grep -q fcl > /dev/null ; then
+        p=`echo "$f" | sed -e 's+^.*units-\([^\.]*\)\..*+\1+'`
+	echo "Installing $p"
+        unztarfromtar "$BINARYTAR" "$f" "$PREFIX"
+      fi
+    done
+  fi
+  if yesno "Install packages"; then
+    listtarfiles "$BINARYTAR" packages units
+    for f in $packages
+    do
+      if ! echo "$f" | grep -q fcl > /dev/null ; then
+        p=`echo "$f" | sed -e 's+^.*units-\([^\.]*\)\..*+\1+'`
+	echo "Installing $p"
+        unztarfromtar "$BINARYTAR" "$f" "$PREFIX"
+      fi
+    done
+  fi
   rm -f *."$1".tar.gz
 }
 
@@ -210,34 +190,9 @@ case "$OSNAME" in
      else
          PREFIX=/boot/home/config
      fi
-     # If we can't write on prefix, we are probably 
-     # on Haiku with package management system.
-     # In this case, we have to install fpc in the non-packaged subdir
-     if [ ! -w "$PREFIX" ]; then
-     	PREFIX="$PREFIX/non-packaged"
-     fi
   ;;
   freebsd)
      PREFIX=/usr/local
-  ;;
-  sunos)
-     # Check if GNU llinker is recent enough, version 2.21 is needed at least
-     GNU_LD=`which gld`
-     supported_emulations=`"$GNU_LD" --target-help | sed -n "s|.*supported emulations:||p" `
-     supports_elf_i386_sol2=`echo $supported_emulations | grep -w elf_i386_sol2 `
-     supports_elf_x86_64_sol2=`echo $supported_emulations | grep -w elf_x86_64_sol2 `
-     if [ "$supports_elf_i386_sol2" = "" ]; then
-       echo -n "GNU linker $GNU_LD does not support elf_i386_sol2 emulation, please consider "
-       echo "upgrading binutils package to at least version 2.21"
-     elif [ "$supports_elf_x86_64_sol2" = "" ]; then
-       echo -n "GNU linker $GNU_LD does not support elf_x86_64_sol2 emulation, please consider "
-       echo "upgrading binutils package to at least version 2.21"
-     fi
-     PREFIX=/usr/local
-     # Use GNU tar if present
-     if [ "`which gtar`" != "" ]; then
-       TAR=`which gtar`
-     fi
   ;;
   *)
      # Install in /usr/local or /usr ?
@@ -255,7 +210,6 @@ if [ ! -w "$PREFIX" ]; then
 fi
 
 PREFIX=/usr
-
 # Support ~ expansion
 PREFIX=`eval echo $PREFIX`
 export PREFIX
@@ -309,6 +263,36 @@ done
 
 echo Done.
 echo
+
+# Install the documentation. Optional.
+if [ -f doc-pdf.tar.gz ]; then
+  if yesno "Install documentation"; then
+    echo Installing documentation in "$DOCDIR" ...
+    makedirhierarch "$DOCDIR"
+    unztar doc-pdf.tar.gz "$DOCDIR" "--strip 1"
+    echo Done.
+  fi
+fi
+echo
+
+# Install the demos. Optional.
+if [ -f demo.tar.gz ]; then
+  if yesno "Install demos"; then
+    ask "Install demos in" DEMODIR
+    echo Installing demos in "$DEMODIR" ...
+    makedirhierarch "$DEMODIR"
+    unztar demo.tar.gz "$DEMODIR"
+    echo Done.
+  fi
+fi
+echo
+
+# Install /etc/fpc.cfg, this is done using the samplecfg script
+if [ "$cross" = "" ]; then
+  "$LIBDIR/samplecfg" "$LIBDIR"
+else
+  echo "No fpc.cfg created because a cross installation has been done."
+fi
 
 # The End
 echo
