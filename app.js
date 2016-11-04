@@ -65,14 +65,14 @@ app.post('/tmpfile',function(req,res){
         //解压zip
         if(type == '.zip'){
 
-            var date = new Date(Date.now+30*60*1000);
-            var j = schedule.scheduleJob( date,function(){
+            //var date = new Date(Date.now+30*60*1000);
+            //var j = schedule.scheduleJob( date,function(){
 
-                if( fs.existsSync(path)){
-                    myfs.rmdir(path);
-                    console.log('删除超时文件夹: '+ path);
-                }
-            })
+                //if( fs.existsSync(path)){
+                    //myfs.rmdir(path);
+                    //console.log('删除超时文件夹: '+ path);
+                //}
+            //})
             //return unzip(filePath,path)
                     //.then(function(){
                         //fs.unlink(filePath);
@@ -187,10 +187,13 @@ app.post('/judge',function(req,res){
     data_path = join(config.tmp_prefix,tmp_uid);
     code_path = join(config.tmp_prefix,tmp_uid,'main.'+language);
     out_path  = join(config.tmp_prefix,tmp_uid,'out');
-
+    
     mkdirp.sync(out_path);
+    fs.chownSync(data_path,config.compiler_uid,config.compiler_gid);
 
     function do_judger(c_path,s_src){
+
+        var d_path = '';
         return myfs.writeFile(c_path,s_src) //写入代码代码
             .then(function(){   //如果tmp_uid !==  uid 那么 复制->解压 else 直接解压
                 if(tmp_uid !== uid){
@@ -200,10 +203,11 @@ app.post('/judge',function(req,res){
                 }
             })
             .then(function(){//解压
-                var d_path = join(config.tmp_prefix,tmp_uid,'data.zip');
+                d_path = join(config.tmp_prefix,tmp_uid,'data.zip');
                 return unzip(d_path,data_path)
             })
             .then(function(){
+                fs.unlink(d_path)
                 return judge(data_path,out_path,code_path,language,judgerConfig,output)
             })
             .then(function(data){
