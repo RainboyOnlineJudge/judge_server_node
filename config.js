@@ -1,7 +1,8 @@
 module.exports = {
     port:8080,           //本judger server 端口
     tmp_prefix:'/test',      //临时评测的时候 前缀 + uuid
-    prefix:'/test',      //评测的时候 前缀 + uuid
+    prefix:'/repo',      //评测的时候 前缀 + uuid
+    spj:'/spj',
     max_diff_line:100,//最多返回多少的行的数据
     //----测试
     
@@ -23,7 +24,7 @@ module.exports = {
 
     cpp_compile_path:'/usr/bin/g++',
     c_compile_path:'/usr/bin/gcc',
-    pas_compile_path:'/usr/bin/pas',
+    pas_compile_path:'/usr/bin/fpc',
 
     judger_log:'/test/judger_log.txt', //评测日志
     //评测机版本
