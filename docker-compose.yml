@@ -2,8 +2,11 @@ version: "2"
 services:
     judge_server:
         image: daocloud.io/rainboy/judger_server
+        tmpfs:
+            - /test:exec,mode=777
         volumes:
             - $PWD:/code
+            - $PWD/repo:/repo
         ports:
             - "0.0.0.0:8080:8080"
-        command: node index.js
+        command: /bin/bash  ./run.sh
